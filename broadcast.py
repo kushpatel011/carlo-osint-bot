@@ -1,38 +1,46 @@
 import time
 from telebot import types
 
-# USERS_COL aur db_mongo aapki main file se aayenge
-def start_broadcast(bot, admin_id, broadcast_msg, db_mongo, USERS_COL):
-    # 1. Database se saare numeric IDs fetch karo
-    all_users = list(db_mongo[USERS_COL].find())
-    valid_users = [u['_id'] for u in all_users if str(u.get('_id', '')).isdigit()]
+def register_broadcast_handler(bot, admin_id, db_mongo, USERS_COL):
     
-    total = len(valid_users)
-    success = 0
-    blocked = 0
-    
-    status_msg = bot.send_message(admin_id, f"🚀 ʙʀᴏᴀᴅᴄᴀsᴛ sᴛᴀʀᴛᴇᴅ...\n👤 ᴛᴀʀɢᴇᴛ ᴜsᴇʀs: {total}")
-
-    for user_id in valid_users:
-        try:
-            # Broadcast message bhej rahe hain (Photo, Video ya Text handle karne ke liye copy_message best hai)
-            bot.copy_message(user_id, admin_id, broadcast_msg.message_id)
-            success += 1
-        except Exception as e:
-            # Agar user ne bot block kar diya hai
-            blocked += 1
+    @bot.message_handler(commands=['broadcast'], func=lambda m: m.from_user.id == admin_id)
+    def handle_broadcast(message):
+        # Command se text alag karna
+        command_parts = message.text.split(maxsplit=1)
         
-        # Telegram API limit se bachne ke liye chota pause (Flood wait protection)
-        if (success + blocked) % 20 == 0:
-            time.sleep(1)
+        if len(command_parts) < 2:
+            return bot.reply_to(message, "❌ <b>ᴜsᴀɢᴇ:</b>\n<code>/broadcast Your Message Here</code>", parse_mode="HTML")
+        
+        broadcast_text = command_parts[1]
+        
+        # --- Start Sending Logic ---
+        users = list(db_mongo[USERS_COL].find())
+        valid_ids = [u['_id'] for u in users if str(u.get('_id', '')).isdigit()]
+        
+        total = len(valid_ids)
+        success = 0
+        blocked = 0
+        
+        status = bot.send_message(admin_id, f"🚀 <b>ʙʀᴏᴀᴅᴄᴀsᴛ sᴛᴀʀᴛᴇᴅ...</b>\n👤 ᴛᴀʀɢᴇᴛ: {total}", parse_mode="HTML")
 
-    # Final report
-    report = (
-        "✅ <b>ʙʀᴏᴀᴅᴄᴀsᴛ ᴄᴏᴍᴘʟᴇᴛᴇᴅ</b>\n"
-        "━━━━━━━━━━━━━━━━━━━━\n"
-        f"👥 ᴛᴏᴛᴀʟ ᴜsᴇʀs: {total}\n"
-        f"🎉 sᴜᴄᴄᴇssғᴜʟ: {success}\n"
-        f"🚫 ʙʟᴏᴄᴋᴇᴅ/ғᴀɪʟᴇᴅ: {blocked}\n"
-        "━━━━━━━━━━━━━━━━━━━━"
-    )
-    bot.edit_message_text(report, admin_id, status_msg.message_id, parse_mode="HTML")
+        for uid in valid_ids:
+            try:
+                bot.send_message(uid, broadcast_text)
+                success += 1
+            except Exception:
+                blocked += 1
+            
+            # Flood wait protection
+            if (success + blocked) % 25 == 0:
+                time.sleep(1)
+
+        report = (
+            "✅ <b>ʙʀᴏᴀᴅᴄᴀsᴛ ᴅᴏɴᴇ</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━\n"
+            f"👥 ᴛᴏᴛᴀʟ: {total}\n"
+            f"🎉 sᴜᴄᴄᴇss: {success}\n"
+            f"🚫 ғᴀɪʟᴇᴅ: {blocked}\n"
+            "━━━━━━━━━━━━━━━━━━━━"
+        )
+        bot.edit_message_text(report, admin_id, status.message_id, parse_mode="HTML")
+        
