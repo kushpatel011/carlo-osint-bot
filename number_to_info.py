@@ -7,6 +7,7 @@ import threading
 from telebot import types
 from datetime import datetime
 import payment_plugin
+import user_info
 import refer_manager
 import tg2num
 import stats
@@ -68,6 +69,7 @@ def state_timeout(bot, uid, chat_id):
 print("🔗 Linking Plugin...")
 payment_plugin.setup_payment_handlers(bot, ADMIN_ID)
 print("🔗 Plugin Linked!")
+user_info.register_info_handlers(bot)
 # Stats handlers register karein
 stats.setup_stats_handlers(bot, db_mongo, ADMIN_ID)
 # --- ADMIN COMMANDS LOADING ---
