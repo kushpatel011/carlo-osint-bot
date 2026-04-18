@@ -7,6 +7,7 @@ import threading
 from telebot import types
 from datetime import datetime
 import payment_plugin
+from broadcast import register_broadcast_handler
 import user_info
 import refer_manager
 import tg2num
@@ -75,6 +76,7 @@ stats.setup_stats_handlers(bot, db_mongo, ADMIN_ID)
 # --- ADMIN COMMANDS LOADING ---
 register_admin_handlers(bot, ADMIN_ID, db_mongo, USERS_COL, COUPONS_COL, SETTING_COL)
 print("✅ Admin Handlers Linked!")
+register_broadcast_handler(bot, ADMIN_ID, db_mongo, USERS_COL)
 
 def load_db(collection_name):
     col = db_mongo[collection_name]
