@@ -11,6 +11,7 @@ from broadcast import register_broadcast_handler
 import user_info
 import refer_manager
 import tg2num
+from vehicle_lookup import setup_vehicle_handlers
 import stats
 import pymongo
 from pymongo import MongoClient
@@ -28,7 +29,7 @@ CHANNEL_LINK = "https://t.me/+SMMZP8shgK01NWZl"
 CHANNEL_ID = -1003398914206
 API_BASE_URL = os.getenv("API_BASE_URL")
 TG_KEY = os.getenv("TG_KEY")
-
+VEHICLE_API_KEY = os.getenv("VEHICLE_API_KEY")
 # MongoDB Setup
 MONGO_URI = os.getenv("MONGO_URI")
 if not MONGO_URI:
@@ -155,10 +156,12 @@ print("✅ Plugin Linked Successfully!")
 # --- TG TO NUMBER HANDLER LINKING ---
 # Isse process_tg_lookup variable ban jayega jo handle_text mein kaam aayega
 process_tg_lookup = tg2num.setup_tg2num_handlers(bot, db_mongo, USERS_COL, get_user, user_states, TG_KEY)# --- MONGODB DATABASE HANDLERS ---
+# ----- VEHICLE NUMBER TO INFO KINKING ---
+process_vehicle_lookup = setup_vehicle_handlers(bot, db_mongo, USERS_COL, get_user, user_states, VEHICLE_API_KEY)
 # --- KEYBOARDS ---
 def main_menu(uid):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row("🆔 ᴛɢ ᴛᴏ ɴᴜᴍʙᴇʀ")
+    markup.row("🆔 ᴛɢ ᴛᴏ ɴᴜᴍʙᴇʀ", "🚘 ᴠᴇʜɪᴄʟᴇ ɪɴғᴏ")
     markup.row("🔍 ɴᴜᴍʙᴇʀ ᴛᴏ ɪɴғᴏ", "👤 ᴍʏ ɪᴅ")
     markup.row("🎁 ʀᴇᴅᴇᴇᴍ ᴄᴏᴅᴇ", "💰 ᴅᴀɪʟʏ ʙᴏɴᴜs")
     markup.row("👨‍💻 ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ")
@@ -259,6 +262,11 @@ def handle_text(message):
         else:
             return bot.reply_to(message, "❌ <b>ɪɴᴠᴀʟɪᴅ ɪᴅ!</b>\nᴘʟᴇᴀsᴇ sᴇɴᴅ ᴀ ᴠᴀʟɪᴅ ᴛᴇʟᴇɢʀᴀᴍ ᴜɪᴅ (ɴᴜᴍʙᴇʀs ᴏɴʟʏ).", parse_mode="HTML")
 
+    #-----VEHICHLE TO INFO----    
+    elif current_state == "waiting_vehicle_num":
+        user_states[uid] = None # Reset state
+        process_vehicle_lookup(message, message.text.strip().upper())
+
     # Number Lookup Process
     elif current_state == "waiting_number":
         if text.isdigit() and len(text) == 10:
@@ -274,7 +282,7 @@ def handle_text(message):
         return process_redeem(message, text)
 
     # --- 2. BUTTONS LOGIC ---
-    all_buttons = ["🆔 ᴛɢ ᴛᴏ ɴᴜᴍʙᴇʀ", "🔍 ɴᴜᴍʙᴇʀ ᴛᴏ ɪɴғᴏ", "👤 ᴍʏ ɪᴅ", "💰 ᴅᴀɪʟʏ ʙᴏɴᴜs", "🎁 ʀᴇᴅᴇᴇᴍ ᴄᴏᴅᴇ", "👨‍💻 ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ", "🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ"]
+    all_buttons = ["🆔 ᴛɢ ᴛᴏ ɴᴜᴍʙᴇʀ", "🚘 ᴠᴇʜɪᴄʟᴇ ɪɴғᴏ", "🔍 ɴᴜᴍʙᴇʀ ᴛᴏ ɪɴғᴏ", "👤 ᴍʏ ɪᴅ", "💰 ᴅᴀɪʟʏ ʙᴏɴᴜs", "🎁 ʀᴇᴅᴇᴇᴍ ᴄᴏᴅᴇ", "👨‍💻 ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ", "🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ"]
 
     if text in all_buttons:
         user_states[uid] = None # Reset state on button click
@@ -290,6 +298,10 @@ def handle_text(message):
             "──────────────────────────────"
         )
         return bot.send_message(message.chat.id, prompt, parse_mode="HTML")
+
+    elif text == "🚘 ᴠᴇʜɪᴄʟᴇ ɪɴғᴏ": # Naya Button
+        user_states[uid] = "waiting_vehicle_num"
+        bot.send_message(message.chat.id, "<b>🚘 SEND VEHICLE NUMBER:</b>\nExample: <code>MH00XX1234</code>", parse_mode="HTML")
 
     elif text == "🔍 ɴᴜᴍʙᴇʀ ᴛᴏ ɪɴғᴏ":
         user_states[uid] = "waiting_number"
