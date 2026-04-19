@@ -10,7 +10,7 @@ def setup_vehicle_handlers(bot, db_mongo, USERS_COL, get_user, user_states, api_
     def process_vehicle_lookup(message, vehicle_num):
         uid = str(message.from_user.id)
         u = get_user(uid)
-        channel_link = "https://t.me/DetorLab"
+        channel_link = "https://t.me/+SMMZP8shgK01NWZl"
         
         if not u:
             return bot.send_message(message.chat.id, "❌ User not found. Please /start.")
@@ -32,7 +32,7 @@ def setup_vehicle_handlers(bot, db_mongo, USERS_COL, get_user, user_states, api_
                 "1️⃣ <b>ʀᴇғᴇʀ:</b> ɪɴᴠɪᴛᴇ ғʀɪᴇɴᴅs ᴛᴏ ᴇᴀʀɴ ᴄʀᴇᴅɪᴛs.\n"
                 "2️⃣ <b>ᴘᴜʀᴄʜᴀsᴇ:</b> ʙᴜʏ ɪɴsᴛᴀɴᴛ ᴄʀᴇᴅɪᴛs ᴠɪᴀ ᴜᴘɪ.\n"
                 "━━━━━━━━━━━━━━━━━━━━\n"
-                f"📡 <b>ᴏғғɪᴄɪᴀʟ:</b> <a href='{channel_link}'>ᴅᴇᴛᴏʀ ʟᴀʙ</a>"
+                f"📡 <b>ᴏғғɪᴄɪᴀʟ:</b> <a href='{channel_link}'>ᴄᴀʀʟᴏ ᴅᴀʀᴋ ᴡᴏʀʟᴅ</a>"
             )
             return bot.send_message(message.chat.id, insufficient_msg, parse_mode="HTML", disable_web_page_preview=True, reply_markup=markup)
 
