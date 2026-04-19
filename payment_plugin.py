@@ -10,7 +10,7 @@ print("🚀 Payment Plugin: Loading (MongoDB Version)...")
 # Environment variable se URI uthayega, nahi toh local use karega
 MONGO_URI = os.getenv("MONGO_URI", "your_mongodb_uri_here")
 client = MongoClient(MONGO_URI)
-db_mongo = client['Bot_Database']
+db_mongo = client['detor_osint_bot']
 
 USERS_COL = db_mongo['users']
 PLANS_COL = db_mongo['plans']
