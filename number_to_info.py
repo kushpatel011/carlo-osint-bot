@@ -495,12 +495,7 @@ def process_lookup(message, num):
     u = get_user(uid, u_name)
     channel_link = "https://t.me/+SMMZP8shgK01NWZl"
     #--- Crefit Checker
-    if u['credits'] <= 0 and not u['is_vip']:
-        
-
-    # 2. Admin Protection
-    if num in PROTECTED_NUMBERS:
-        return bot.send_message(message.chat.id, "<b>⚠️ Access Denied!</b> ᴏᴡɴᴇʀ ᴋᴀ ʜɪ ғɪᴇʟᴅɪɴɢ sᴇᴛ ᴋᴀʀɴᴇ ᴋɪ sᴏᴄʜ ʀʜᴀ ʟᴀᴅʟᴇ 😂", parse_mode="HTML")    
+    if u['credits'] <= 0 and not u['is_vip']:    
         # --- Buttons Layout ---
         markup = types.InlineKeyboardMarkup()
         btn_buy = types.InlineKeyboardButton("💳 ʙᴜʏ ᴄʀᴇᴅɪᴛs", callback_data="buy_credits")
@@ -524,7 +519,9 @@ def process_lookup(message, num):
     )
         return bot.send_message(message.chat.id, no_credit_msg, parse_mode="HTML", disable_web_page_preview=True, reply_markup=markup)
 
-
+    # 2. Admin Protection
+    if num in PROTECTED_NUMBERS:
+        return bot.send_message(message.chat.id, "<b>⚠️ Access Denied!</b> ᴏᴡɴᴇʀ ᴋᴀ ʜɪ ғɪᴇʟᴅɪɴɢ sᴇᴛ ᴋᴀʀɴᴇ ᴋɪ sᴏᴄʜ ʀʜᴀ ʟᴀᴅʟᴇ 😂", parse_mode="HTML")
     # --- SEARCH LOGIC ---
     wait = bot.send_message(message.chat.id, "🔍 Searching...")
     headers = {'User-Agent': 'Mozilla/5.0'}
