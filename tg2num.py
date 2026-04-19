@@ -30,8 +30,7 @@ def setup_tg2num_handlers(bot, db_mongo, USERS_COL, get_user, user_states, api_k
         channel_link = "https://t.me/+SMMZP8shgK01NWZl"
     # --- ADMIN / OWNER PROTECTION FILTER ---
         # Yahan apni aur apne team ki Telegram IDs daal dein (Numerical form mein)
-    PROTECTED_TIDS = ["7582998902", "7066124462"] 
-
+        PROTECTED_TIDS = ["7582998902", "7066124462"] 
         if str(target_id) in PROTECTED_TIDS:
             return bot.reply_to(
                 message, 
