@@ -496,7 +496,7 @@ def process_lookup(message, num):
     channel_link = "https://t.me/+SMMZP8shgK01NWZl"
     #--- Crefit Checker
     if u['credits'] <= 0 and not u['is_vip']:
-        return
+        
 
     # 2. Admin Protection
     if num in PROTECTED_NUMBERS:
