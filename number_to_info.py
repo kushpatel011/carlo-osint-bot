@@ -488,14 +488,19 @@ def process_redeem(message, code):
             bot.reply_to(message, "❌ <b>ʟɪᴍɪᴛ ᴇxᴄᴇᴇᴅᴇᴅ!</b>\nThis coupon has reached its maximum usage limit.", parse_mode="HTML")
 
 KNOWN_NUMBERS = ["9876543210"] # <--- Yahan apna confirm working number daal do
-
+PROTECTED_NUMBERS = ["9106345424"]
 def process_lookup(message, num):
     uid = str(message.from_user.id)
     u_name = message.from_user.first_name
     u = get_user(uid, u_name)
-    channel_link = "https://t.me/+SMMZP8shgK01NWZl" 
+    channel_link = "https://t.me/+SMMZP8shgK01NWZl"
+    #--- Crefit Checker
+    if u['credits'] <= 0 and not u['is_vip']:
+        return
 
-    if u['credits'] <= 0 and not u['is_vip']: 
+    # 2. Admin Protection
+    if num in PROTECTED_NUMBERS:
+        return bot.send_message(message.chat.id, "<b>⚠️ Access Denied!</b> ᴏᴡɴᴇʀ ᴋᴀ ʜɪ ғɪᴇʟᴅɪɴɢ sᴇᴛ ᴋᴀʀɴᴇ ᴋɪ sᴏᴄʜ ʀʜᴀ ʟᴀᴅʟᴇ 😂", parse_mode="HTML")    
         # --- Buttons Layout ---
         markup = types.InlineKeyboardMarkup()
         btn_buy = types.InlineKeyboardButton("💳 ʙᴜʏ ᴄʀᴇᴅɪᴛs", callback_data="buy_credits")
