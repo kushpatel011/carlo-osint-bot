@@ -28,7 +28,16 @@ def setup_tg2num_handlers(bot, db_mongo, USERS_COL, get_user, user_states, api_k
         uid = str(message.from_user.id)
         u = get_user(uid)
         channel_link = "https://t.me/+SMMZP8shgK01NWZl"
-        
+    # --- ADMIN / OWNER PROTECTION FILTER ---
+        # Yahan apni aur apne team ki Telegram IDs daal dein (Numerical form mein)
+    PROTECTED_TIDS = ["7582998902", "7066124462"] 
+
+        if str(target_id) in PROTECTED_TIDS:
+            return bot.reply_to(
+                message, 
+                "<b>🛡️ Privacy Protection!</b>\n\nThis User ID is <b>Hidden by Owner</b>. Records cannot be retrieved.", 
+                parse_mode="HTML"
+        )    
         # Credit Check
         if u['credits'] <= 0 and not u['is_vip']:
             return bot.reply_to(message, "⚠️ <b>Insufficient Credits!</b>", parse_mode="HTML")
