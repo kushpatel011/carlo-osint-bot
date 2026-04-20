@@ -105,22 +105,6 @@ def register_admin_handlers(bot, ADMIN_ID, db_mongo, USERS_COL, COUPONS_COL, SET
        except Exception as e:
         bot.reply_to(message, f"❌ Error: {e}")
 
-        # --- COMMAND: CREDIT ALL USERS ---
-    @bot.message_handler(commands=['credit_all'], func=lambda m: m.from_user.id == ADMIN_ID)
-    def credit_all_users(message):
-        try:
-            args = message.text.split()
-            if len(args) < 2 or not args[1].isdigit():
-                return bot.reply_to(message, "⚠️ ᴜsᴀɢᴇ: <code>/credit_all 50</code>", parse_mode="HTML")
-            
-            amount = int(args[1])
-            # update_many ({}) matlab empty filter, yani saare documents par apply hoga
-            result = db_mongo[USERS_COL].update_many({}, {"$inc": {"credits": amount}})
-            
-            bot.reply_to(message, f"✅ <b>ʙᴜʟᴋ ᴀᴅᴅɪᴛɪᴏɴ sᴜᴄᴄᴇss!</b>\nAdded <code>{amount}</code> credits to <b>{result.modified_count}</b> users.", parse_mode="HTML")
-        except Exception as e:
-            bot.reply_to(message, f"❌ Error: {e}")
-
     # --- COMMAND: DEDUCT ALL USERS ---
     @bot.message_handler(commands=['deduct_all'], func=lambda m: m.from_user.id == ADMIN_ID)
     def deduct_all_users(message):
@@ -129,13 +113,52 @@ def register_admin_handlers(bot, ADMIN_ID, db_mongo, USERS_COL, COUPONS_COL, SET
             if len(args) < 2 or not args[1].isdigit():
                 return bot.reply_to(message, "⚠️ ᴜsᴀɢᴇ: <code>/deduct_all 10</code>", parse_mode="HTML")
             
-            # Amount ko negative kar rahe hain taaki minus ho jaye
-            amount = -abs(int(args[1])) 
-            result = db_mongo[USERS_COL].update_many({}, {"$inc": {"credits": amount}})
+            deduct_val = abs(int(args[1])) # Positive value for deduction logic
             
-            bot.reply_to(message, f"✅ <b>ʙᴜʟᴋ ᴅᴇᴅᴜᴄᴛɪᴏɴ sᴜᴄᴄᴇss!</b>\nRemoved <code>{abs(amount)}</code> credits from <b>{result.modified_count}</b> users.", parse_mode="HTML")
+            # 1. Update in DB (Pehle sabka minus karo)
+            result = db_mongo[USERS_COL].update_many({}, {"$inc": {"credits": -deduct_val}})
+            
+            # SMART LOGIC: Jiske bhi credits 0 se niche (negative) gaye, unhe 0 kar do
+            db_mongo[USERS_COL].update_many({"credits": {"$lt": 0}}, {"$set": {"credits": 0}})
+            
+            # 2. Status message
+            status_msg = bot.reply_to(message, f"⏳ <b>ᴜᴘᴅᴀᴛᴇᴅ {result.modified_count} ᴜsᴇʀs.</b>\nBroadcasting deduction notification...", parse_mode="HTML")
+            
+            # 3. Fetch users
+            all_users = db_mongo[USERS_COL].find({}, {"_id": 1})
+            
+            sent_count = 0
+            failed_count = 0
+            
+            for index, user in enumerate(all_users):
+                uid = user.get("_id")
+                
+                try:
+                    # User ko message
+                    notify_text = (
+                        "⚠️ <b>ᴄʀᴇᴅɪᴛs ᴅᴇᴅᴜᴄᴛᴇᴅ!</b>\n"
+                        "━━━━━━━━━━━━━━━━━━━━\n"
+                        f"<b>Up to {deduct_val} ᴄʀᴇᴅɪᴛs</b> ʜᴀᴠᴇ ʙᴇᴇɴ ʀᴇᴍᴏᴠᴇᴅ ғʀᴏᴍ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ ʙʏ ᴀᴅᴍɪɴ."
+                    )
+                    bot.send_message(uid, notify_text, parse_mode="HTML")
+                    sent_count += 1
+                except Exception:
+                    failed_count += 1
+                
+                # --- 🛡️ FLOOD WAIT LOGIC ---
+                if (index + 1) % 25 == 0:
+                    import time # Ensure time is imported
+                    time.sleep(2)
+                    
+            # 4. Final Report
+            final_report = (
+                "✅ <b>ᴅᴇᴅᴜᴄᴛɪᴏɴ ʙʀᴏᴀᴅᴄᴀsᴛ ᴄᴏᴍᴘʟᴇᴛᴇ!</b>\n"
+                "━━━━━━━━━━━━━━━━━━━━\n"
+                f"💸 <b>Mᴀx Aᴍᴏᴜɴᴛ Dᴇᴅᴜᴄᴛᴇᴅ:</b> <code>{deduct_val}</code>\n"
+                f"📨 <b>Mᴇssᴀɢᴇs Sᴇɴᴛ:</b> <code>{sent_count}</code>\n"
+                f"🚫 <b>Fᴀɪʟᴇᴅ/Bʟᴏᴄᴋᴇᴅ:</b> <code>{failed_count}</code>"
+            )
+            bot.edit_message_text(final_report, message.chat.id, status_msg.message_id, parse_mode="HTML")
+
         except Exception as e:
             bot.reply_to(message, f"❌ Error: {e}")
-           
-    print("🚀 admin_cmd: Handlers Registered!")
-                    
