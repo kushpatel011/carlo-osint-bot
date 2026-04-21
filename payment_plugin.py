@@ -19,10 +19,10 @@ SETTING_COL = db_mongo['settings']
 UPI_ID = "kalariyakush5801@oksbi"
 QR_PATH = "my_qr.jpg"
 
-def setup_payment_handlers(bot, ADMIN_ID):
+def setup_payment_handlers(bot, ADMIN_IDS):
     
     # --- ADMIN: ADD PLAN ---
-    @bot.message_handler(commands=['addplan'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['addplan'], func=lambda m: m.from_user.id == ADMIN_IDS)
     def add_plan(message):
         try:
             # Format: /addplan Name|Credits|Price
@@ -38,7 +38,7 @@ def setup_payment_handlers(bot, ADMIN_ID):
         except Exception as e:
             bot.reply_to(message, "❌ ᴜsᴇ ғᴏʀᴍᴀᴛ: <code>/addplan Starter|10|50</code>", parse_mode="HTML")
         # --- ADMIN: REMOVE PLAN ---
-    @bot.message_handler(commands=['removeplan'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['removeplan'], func=lambda m: m.from_user.id == ADMIN_IDS)
     def remove_plan(message):
         try:
             # Format: /removeplan Starter
@@ -57,7 +57,7 @@ def setup_payment_handlers(bot, ADMIN_ID):
             bot.reply_to(message, "❌ ᴜsᴇ ғᴏʀᴍᴀᴛ: <code>/removeplan Starter</code>", parse_mode="HTML")
             
     # --- ADMIN: VIEW ALL PLANS ---
-    @bot.message_handler(commands=['plans'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['plans'], func=lambda m: m.from_user.id == ADMIN_IDS)
     def view_plans(message):
         plans = list(PLANS_COL.find())
         if not plans:
