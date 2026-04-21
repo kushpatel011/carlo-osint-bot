@@ -2,17 +2,17 @@ import io
 from datetime import datetime
 from telebot import types
 
-def setup_stats_handlers(bot, db_mongo, ADMIN_ID):
+def setup_stats_handlers(bot, db_mongo, ADMIN_IDS):
     USERS_COL = db_mongo['users']
     COUPONS_COL = db_mongo['coupons']
 
     # --- 1. EXPORT ALL USERS ---
-    @bot.message_handler(commands=['getusers'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['getusers'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def export_all_users(message):
         bot.reply_to(message, "⏳ ɢᴇɴᴇʀᴀᴛɪɴɢ ᴀʟʟ ᴜsᴇʀs ʟɪsᴛ...")
         users = list(USERS_COL.find())
         
-        output = "📊 ᴅᴇᴛᴏʀ ᴏsɪɴᴛ - ᴛᴏᴛᴀʟ ᴜsᴇʀs ʟɪsᴛ\n"
+        output = "📊 carlo ᴏsɪɴᴛ - ᴛᴏᴛᴀʟ ᴜsᴇʀs ʟɪsᴛ\n"
         output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
         
         for i, u in enumerate(users, 1):
@@ -32,7 +32,7 @@ def setup_stats_handlers(bot, db_mongo, ADMIN_ID):
             bot.send_document(message.chat.id, file, caption=f"👤 ᴛᴏᴛᴀʟ ᴜsᴇʀs: {len(users)}")
 
     # --- 2. EXPORT VIP MEMBERS ---
-    @bot.message_handler(commands=['getvips'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['getvips'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def export_vip_users(message):
         bot.reply_to(message, "⏳ ɢᴇɴᴇʀᴀᴛɪɴɢ ᴠɪᴘ ᴍᴇᴍʙᴇʀs ʟɪsᴛ...")
         vips = list(USERS_COL.find({"is_vip": True}))
@@ -40,7 +40,7 @@ def setup_stats_handlers(bot, db_mongo, ADMIN_ID):
         if not vips:
             return bot.reply_to(message, "❌ ɴᴏ ᴠɪᴘ ᴍᴇᴍʙᴇʀs ғᴏᴜɴᴅ.")
 
-        output = "👑 ᴅᴇᴛᴏʀ ᴏsɪɴᴛ - ᴠɪᴘ ᴍᴇᴍʙᴇʀs ʟɪsᴛ\n"
+        output = "👑 carlo ᴏsɪɴᴛ - ᴠɪᴘ ᴍᴇᴍʙᴇʀs ʟɪsᴛ\n"
         output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
         
         for i, u in enumerate(vips, 1):
@@ -58,7 +58,7 @@ def setup_stats_handlers(bot, db_mongo, ADMIN_ID):
             bot.send_document(message.chat.id, file, caption=f"👑 ᴛᴏᴛᴀʟ ᴠɪᴘs: {len(vips)}")
         # --- 3. EXPORT ADVANCED COUPON AUDIT ---
 
-    @bot.message_handler(commands=['getcoupons'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['getcoupons'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def export_coupons(message):
         try:
             bot.reply_to(message, "⏳ ɢᴇɴᴇʀᴀᴛɪɴɢ ᴀᴅᴠᴀɴᴄᴇᴅ ᴀᴜᴅɪᴛ ʀᴇᴘᴏʀᴛ...")
