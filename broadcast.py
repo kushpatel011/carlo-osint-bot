@@ -1,9 +1,9 @@
 import time
 from telebot import types
 
-def register_broadcast_handler(bot, admin_ids, db_mongo, USERS_COL):
+def register_broadcast_handler(bot, ADMIN_IDS, db_mongo, USERS_COL):
     
-    @bot.message_handler(commands=['broadcast'], func=lambda m: m.from_user.id in admin_ids)
+    @bot.message_handler(commands=['broadcast'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def handle_broadcast(message):
         # Command se text alag karna
         command_parts = message.text.split(maxsplit=1)
@@ -42,5 +42,5 @@ def register_broadcast_handler(bot, admin_ids, db_mongo, USERS_COL):
             f"🚫 ғᴀɪʟᴇᴅ: {blocked}\n"
             "━━━━━━━━━━━━━━━━━━━━"
         )
-        bot.edit_message_text(report, admin_ids, status.message_id, parse_mode="HTML")
+        bot.edit_message_text(report, ADMIN_IDS, status.message_id, parse_mode="HTML")
         
