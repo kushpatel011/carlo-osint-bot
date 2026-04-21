@@ -23,7 +23,7 @@ IST = pytz.timezone('Asia/Kolkata')
 
 # --- CONFIGURATION ---
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = 7582998902
+ADMIN_IDS = [7582998902, 7066124462]
 OWNER_USERNAME = "@ModexOwner"
 CHANNEL_LINK = "https://t.me/+SMMZP8shgK01NWZl"
 CHANNEL_ID = -1003398914206
@@ -69,15 +69,15 @@ def state_timeout(bot, uid, chat_id):
         except: pass
 # Plugin Linking
 print("🔗 Linking Plugin...")
-payment_plugin.setup_payment_handlers(bot, ADMIN_ID)
+payment_plugin.setup_payment_handlers(bot, ADMIN_IDS)
 print("🔗 Plugin Linked!")
 user_info.register_info_handlers(bot)
 # Stats handlers register karein
-stats.setup_stats_handlers(bot, db_mongo, ADMIN_ID)
+stats.setup_stats_handlers(bot, db_mongo, ADMIN_IDS)
 # --- ADMIN COMMANDS LOADING ---
-register_admin_handlers(bot, ADMIN_ID, db_mongo, USERS_COL, COUPONS_COL, SETTING_COL)
+register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SETTING_COL)
 print("✅ Admin Handlers Linked!")
-register_broadcast_handler(bot, ADMIN_ID, db_mongo, USERS_COL)
+register_broadcast_handler(bot, ADMIN_IDS, db_mongo, USERS_COL)
 
 def load_db(collection_name):
     col = db_mongo[collection_name]
@@ -165,7 +165,7 @@ def main_menu(uid):
     markup.row("🔍 ɴᴜᴍʙᴇʀ ᴛᴏ ɪɴғᴏ", "👤 ᴍʏ ɪᴅ")
     markup.row("🎁 ʀᴇᴅᴇᴇᴍ ᴄᴏᴅᴇ", "💰 ᴅᴀɪʟʏ ʙᴏɴᴜs")
     markup.row("👨‍💻 ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ")
-    if uid == ADMIN_ID: markup.row("🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ")
+    if uid == ADMIN_IDS: markup.row("🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ")
     return markup
 
 # --- START COMMAND ---
@@ -326,7 +326,7 @@ def handle_text(message):
         
         # --- Data Extraction ---
         full_name = message.from_user.full_name
-        role = "👑 ᴏᴡɴᴇʀ" if uid == ADMIN_ID else ("💎 ᴠɪᴘ" if u.get('is_vip') else "👤 ᴜsᴇʀ")
+        role = "👑 ᴏᴡɴᴇʀ" if uid == ADMIN_IDS else ("💎 ᴠɪᴘ" if u.get('is_vip') else "👤 ᴜsᴇʀ")
         credits = u.get('credits', 0)
         total_search = u.get('total_search', 0)
         ref_count = u.get('refer_count', 0)
@@ -380,7 +380,7 @@ def handle_text(message):
     elif text == "👨‍💻 ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ":
         return bot.send_message(message.chat.id, f"<b>Message me here:</b> {OWNER_USERNAME}", parse_mode="HTML")
 
-    elif text == "🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ" and uid == ADMIN_ID:
+    elif text == "🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ" and uid == ADMIN_IDS:
         return show_admin_panel(message)
 
     # --- 3. STATE HANDLING (Yahi par error aayega agar number galat hua) ---
