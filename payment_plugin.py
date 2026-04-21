@@ -121,29 +121,30 @@ def setup_payment_handlers(bot, ADMIN_IDS):
         else:
             bot.send_message(call.message.chat.id, instr, parse_mode="HTML")
 
-    # --- ADMIN: APPROVAL LOGIC ---
+    # --- ADMIN: APPROVAL LOGIC (SECURED) ---
     @bot.callback_query_handler(func=lambda call: call.data.startswith("p_"))
     def admin_approval(call):
-        # Format: p_action_uid_credits
+        # 🛡️ SECURITY: Only allow admins to use these buttons
+        if call.from_user.id not in ADMIN_IDS:
+            return bot.answer_callback_query(call.id, "❌ Not authorized!", show_alert=True)
+
         data_parts = call.data.split("_")
         action = data_parts[1]
-        uid = data_parts[2]
+        uid = int(data_parts[2]) # Ensure UID is int
         credits = int(data_parts[3])
         
         if action == "app": # Approve
-            # MongoDB Update
             USERS_COL.update_one(
                 {"_id": uid},
                 {"$inc": {"credits": credits}},
                 upsert=True
             )
-            
-            bot.send_message(uid, f"✅ <b>ᴘᴀʏᴍᴇɴᴛ ᴀᴘᴘʀᴏᴠᴇᴅ!</b>\n{credits} ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ ᴛᴏ ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ.", parse_mode="HTML")
+            bot.send_message(uid, f"✅ <b>ᴘᴀʏᴍᴇɴᴛ ᴀᴘᴘʀᴏᴠᴇᴅ!</b>\n{credits} ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ.", parse_mode="HTML")
             bot.edit_message_caption(
-                f"✅ ᴀᴘᴘʀᴏᴠᴇᴅ {credits} ᴄʀ for {uid}\nBy Admin: {call.from_user.first_name}", 
+                f"✅ Approved {credits} Cr for {uid}\nAdmin: {call.from_user.first_name}", 
                 call.message.chat.id, call.message.message_id
             )
         else: # Reject
-            bot.send_message(uid, "❌ <b>ᴘᴀʏᴍᴇɴᴛ ʀᴇᴊᴇᴄᴛᴇᴅ!</b>\nɪɴᴠᴀʟɪᴅ sᴄʀᴇᴇɴsʜᴏᴛ ᴏʀ ғᴀɪʟᴇᴅ ᴛʀᴀɴsᴀᴄᴛɪᴏɴ.", parse_mode="HTML")
-            bot.edit_message_caption(f"❌ ʀᴇᴊᴇᴄᴛᴇᴅ for {uid}", call.message.chat.id, call.message.message_id)
+            bot.send_message(uid, "❌ <b>ᴘᴀʏᴍᴇɴᴛ ʀᴇᴊᴇᴄᴛᴇᴅ!</b>", parse_mode="HTML")
+            bot.edit_message_caption(f"❌ Rejected for {uid}", call.message.chat.id, call.message.message_id)
                 
