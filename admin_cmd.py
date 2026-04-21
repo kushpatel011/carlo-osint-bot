@@ -7,11 +7,11 @@ IST = pytz.timezone('Asia/Kolkata')
 
 print("✅ admin_cmd.py: Loading Handlers...")
 
-def register_admin_handlers(bot, ADMIN_ID, db_mongo, USERS_COL, COUPONS_COL, SETTING_COL):
+def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SETTING_COL):
     
     # --- COMMAND: DECREASE CREDITS ---
     # Isko function ke andar rakha hai taaki main file se connect ho jaye
-    @bot.message_handler(commands=['decrease'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['decrease'], func=lambda m: m.from_user.id == ADMIN_IDS)
     def decrease_credits(message):
         try:
             # Format: /decrease userid amount
@@ -66,7 +66,7 @@ def register_admin_handlers(bot, ADMIN_ID, db_mongo, USERS_COL, COUPONS_COL, SET
             bot.reply_to(message, f"❌ Error: {str(e)}")
             
     # --- NEW COMMAND: REMOVE COUPON ---
-    @bot.message_handler(commands=['delcoupon', 'rmcoupon'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['delcoupon', 'rmcoupon'], func=lambda m: m.from_user.id == ADMIN_IDS)
     def remove_coupon(message):
         try:
             # Format: /delcoupon CODE
