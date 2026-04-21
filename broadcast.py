@@ -5,35 +5,41 @@ def register_broadcast_handler(bot, ADMIN_IDS, db_mongo, USERS_COL):
     
     @bot.message_handler(commands=['broadcast'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def handle_broadcast(message):
-        # Command se text alag karna
+        # 1. Command parts split karna
         command_parts = message.text.split(maxsplit=1)
         
         if len(command_parts) < 2:
             return bot.reply_to(message, "❌ <b>ᴜsᴀɢᴇ:</b>\n<code>/broadcast Your Message Here</code>", parse_mode="HTML")
         
         broadcast_text = command_parts[1]
+        admin_chat_id = message.chat.id # Current admin ki ID report ke liye
         
-        # --- Start Sending Logic ---
-        users = list(db_mongo[USERS_COL].find())
-        valid_ids = [u['_id'] for u in users if str(u.get('_id', '')).isdigit()]
-        
-        total = len(valid_ids)
+        # 2. Database se users nikalna
+        # Sirf _id uthao performance ke liye
+        users = list(db_mongo[USERS_COL].find({}, {"_id": 1}))
+        total = len(users)
         success = 0
         blocked = 0
         
-        status = bot.send_message(ADMIN_IDS, f"🚀 <b>ʙʀᴏᴀᴅᴄᴀsᴛ sᴛᴀʀᴛᴇᴅ...</b>\n👤 ᴛᴀʀɢᴇᴛ: {total}", parse_mode="HTML")
+        # Initial status message
+        status_msg = bot.send_message(admin_chat_id, f"🚀 <b>ʙʀᴏᴀᴅᴄᴀsᴛ sᴛᴀʀᴛᴇᴅ...</b>\n👤 ᴛᴀʀɢᴇᴛ: {total}", parse_mode="HTML")
 
-        for uid in valid_ids:
+        # 3. Broadcasting Loop
+        for index, user in enumerate(users):
+            uid = user.get("_id")
+            if not uid: continue
+            
             try:
                 bot.send_message(uid, broadcast_text)
                 success += 1
             except Exception:
                 blocked += 1
             
-            # Flood wait protection
-            if (success + blocked) % 25 == 0:
+            # Flood wait protection (Har 25 messages ke baad 1 sec gap)
+            if (index + 1) % 25 == 0:
                 time.sleep(1)
 
+        # 4. Final Report
         report = (
             "✅ <b>ʙʀᴏᴀᴅᴄᴀsᴛ ᴅᴏɴᴇ</b>\n"
             "━━━━━━━━━━━━━━━━━━━━\n"
@@ -42,5 +48,6 @@ def register_broadcast_handler(bot, ADMIN_IDS, db_mongo, USERS_COL):
             f"🚫 ғᴀɪʟᴇᴅ: {blocked}\n"
             "━━━━━━━━━━━━━━━━━━━━"
         )
-        bot.edit_message_text(report, ADMIN_IDS, status.message_id, parse_mode="HTML")
-        
+        # Edit karte waqt sender ki chat_id use karein
+        bot.edit_message_text(report, admin_chat_id, status_msg.message_id, parse_mode="HTML")
+    
