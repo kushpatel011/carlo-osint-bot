@@ -21,7 +21,7 @@ def register_broadcast_handler(bot, admin_ids, db_mongo, USERS_COL):
         success = 0
         blocked = 0
         
-        status = bot.send_message(admin_id, f"🚀 <b>ʙʀᴏᴀᴅᴄᴀsᴛ sᴛᴀʀᴛᴇᴅ...</b>\n👤 ᴛᴀʀɢᴇᴛ: {total}", parse_mode="HTML")
+        status = bot.send_message(admin_ids, f"🚀 <b>ʙʀᴏᴀᴅᴄᴀsᴛ sᴛᴀʀᴛᴇᴅ...</b>\n👤 ᴛᴀʀɢᴇᴛ: {total}", parse_mode="HTML")
 
         for uid in valid_ids:
             try:
