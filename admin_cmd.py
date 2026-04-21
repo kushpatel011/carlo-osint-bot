@@ -11,7 +11,7 @@ def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SE
     
     # --- COMMAND: DECREASE CREDITS ---
     # Isko function ke andar rakha hai taaki main file se connect ho jaye
-    @bot.message_handler(commands=['decrease'], func=lambda m: m.from_user.id == ADMIN_IDS)
+    @bot.message_handler(commands=['decrease'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def decrease_credits(message):
         try:
             # Format: /decrease userid amount
@@ -39,7 +39,7 @@ def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SE
             bot.reply_to(message, f"❌ Error: {str(e)}")
 
     # --- COMMAND: REMOVE VIP ---
-    @bot.message_handler(commands=['Remove', 'remove'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['Remove', 'remove'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def remove_vip(message):
         try:
             # Format: /Remove userid reason
@@ -66,7 +66,7 @@ def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SE
             bot.reply_to(message, f"❌ Error: {str(e)}")
             
     # --- NEW COMMAND: REMOVE COUPON ---
-    @bot.message_handler(commands=['delcoupon', 'rmcoupon'], func=lambda m: m.from_user.id == ADMIN_IDS)
+    @bot.message_handler(commands=['delcoupon', 'rmcoupon'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def remove_coupon(message):
         try:
             # Format: /delcoupon CODE
@@ -87,7 +87,7 @@ def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SE
         except Exception as e:
             bot.reply_to(message, f"❌ <b>Error:</b> {str(e)}", parse_mode="HTML")
       # --- COMMAND: SET CREDIT FOR NEW USERS ---      
-    @bot.message_handler(commands=['setcredit'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['setcredit'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def set_default_credit(message):
        try:
         val = message.text.split()
@@ -106,7 +106,7 @@ def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SE
         bot.reply_to(message, f"❌ Error: {e}")
 
     # --- COMMAND: DEDUCT ALL USERS ---
-    @bot.message_handler(commands=['deduct_all'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['deduct_all'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def deduct_all_users(message):
         try:
             args = message.text.split()
