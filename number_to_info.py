@@ -165,7 +165,7 @@ def main_menu(uid):
     markup.row("🔍 ɴᴜᴍʙᴇʀ ᴛᴏ ɪɴғᴏ", "👤 ᴍʏ ɪᴅ")
     markup.row("🎁 ʀᴇᴅᴇᴇᴍ ᴄᴏᴅᴇ", "💰 ᴅᴀɪʟʏ ʙᴏɴᴜs")
     markup.row("👨‍💻 ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ")
-    if uid == ADMIN_IDS: markup.row("🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ")
+    if uid in ADMIN_IDS: markup.row("🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ")
     return markup
 
 # --- START COMMAND ---
@@ -326,7 +326,7 @@ def handle_text(message):
         
         # --- Data Extraction ---
         full_name = message.from_user.full_name
-        role = "👑 ᴏᴡɴᴇʀ" if uid == ADMIN_IDS else ("💎 ᴠɪᴘ" if u.get('is_vip') else "👤 ᴜsᴇʀ")
+        role = "👑 ᴏᴡɴᴇʀ" if uid in ADMIN_IDS else ("💎 ᴠɪᴘ" if u.get('is_vip') else "👤 ᴜsᴇʀ")
         credits = u.get('credits', 0)
         total_search = u.get('total_search', 0)
         ref_count = u.get('refer_count', 0)
@@ -380,7 +380,7 @@ def handle_text(message):
     elif text == "👨‍💻 ᴄᴏɴᴛᴀᴄᴛ ᴏᴡɴᴇʀ":
         return bot.send_message(message.chat.id, f"<b>Message me here:</b> {OWNER_USERNAME}", parse_mode="HTML")
 
-    elif text == "🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ" and uid == ADMIN_IDS:
+    elif text == "🛠 ᴀᴅᴍɪɴ ᴘᴀɴᴇʟ" and uid in ADMIN_IDS:
         return show_admin_panel(message)
 
     # --- 3. STATE HANDLING (Yahi par error aayega agar number galat hua) ---
@@ -420,7 +420,7 @@ def handle_screenshot(message):
         )
         
         caption = f"💰 <b>ɴᴇᴡ ᴘᴀʏᴍᴇɴᴛ ʀᴇǫᴜᴇsᴛ</b>\n👤 ᴜsᴇʀ: {message.from_user.first_name} ({uid})\n🎫 ᴘʟᴀɴ: {credits} ᴄʀᴇᴅɪᴛs"
-        bot.send_photo(ADMIN_ID, message.photo[-1].file_id, caption=caption, parse_mode="HTML", reply_markup=markup)
+        bot.send_photo(ADMIN_IDS, message.photo[-1].file_id, caption=caption, parse_mode="HTML", reply_markup=markup)
 
 # --- CORE FUNCTIONS ---
 def claim_bonus(message):
@@ -687,7 +687,7 @@ def callback_query(call):
         
         # stats format
         stats_msg = (
-            "📊 <b>DETOR SYSTEM STATS</b>\n━━━━━━━━━━━━━━━━━━━━\n"
+            "📊 <b>CARLO SYSTEM STATS</b>\n━━━━━━━━━━━━━━━━━━━━\n"
             f"👤 <b>Total Users:</b> <code>{total_users}</code>\n"
             f"👑 <b>VIP Members:</b> <code>{vip_users}</code>\n"
             f"🔍 <b>Total Queries:</b> <code>{total_queries}</code>\n"
