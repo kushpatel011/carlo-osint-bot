@@ -106,7 +106,7 @@ def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SE
         bot.reply_to(message, f"❌ Error: {e}")
            
     # --- COMMAND: CREDIT ALL USERS ---
-    @bot.message_handler(commands=['credit_all'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['credit_all'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def credit_all_users(message):
         try:
             args = message.text.split()
@@ -163,7 +163,7 @@ def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SE
             bot.reply_to(message, f"❌ Error: {e}")
 
         # --- COMMAND: DEDUCT ALL USERS ---
-    @bot.message_handler(commands=['deduct_all'], func=lambda m: m.from_user.id == ADMIN_ID)
+    @bot.message_handler(commands=['deduct_all'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def deduct_all_users(message):
         try:
             args = message.text.split()
