@@ -215,7 +215,6 @@ def setup_payment_handlers(bot, ADMIN_IDS):
         except Exception as e:
             bot.answer_callback_query(call.id, f"❌ Error: {e}", show_alert=True)
             print(f"Approval Error: {e}")
-
-                pass # Agar user ne bot block kar diya ho
+            pass # Agar user ne bot block kar diya ho
                 
             bot.edit_message_caption(f"❌ Rejected for {uid}", call.message.chat.id, call.message.message_id)
