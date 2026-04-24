@@ -169,52 +169,58 @@ def setup_payment_handlers(bot, ADMIN_IDS):
             except Exception as e:
                 bot.reply_to(message, f"❌ Error: {e}")
                 
-        # --- ADMIN: APPROVAL LOGIC (SECURED) ---
+            # --- ADMIN: APPROVAL LOGIC (MULTI-ADMIN SECURED) ---
     @bot.callback_query_handler(func=lambda call: call.data.startswith("p_"))
     def admin_approval(call):
-        # 🛡️ SECURITY: Only allow admins to use these buttons
         if call.from_user.id not in ADMIN_IDS:
             return bot.answer_callback_query(call.id, "❌ Not authorized!", show_alert=True)
 
         try:
+            # 1. 🛡️ DOUBLE CHECK: Caption check karo ki kya pehle hi process ho chuka hai?
+            current_caption = call.message.caption or ""
+            if "✅" in current_caption or "❌" in current_caption:
+                # Buttons remove kar do agar abhi bhi dikh rahe hain
+                try: bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+                except: pass
+                return bot.answer_callback_query(call.id, "⚠️ Already processed by another admin!", show_alert=True)
+
             data_parts = call.data.split("_")
             action = data_parts[1]
-            
-            # 🛑 CRITICAL FIX: UID ko string me convert kiya (aapke DB format ke liye)
             uid = str(data_parts[2]) 
             credits = int(data_parts[3])
             
-            # Direct collection variable use karein (USERS_COL variable ko call karein)
-            # Agar USERS_COL sirf "users" string hai, to db_mongo[USERS_COL] likhein
             col = db_mongo[USERS_COL] if isinstance(USERS_COL, str) else USERS_COL
 
             if action == "app": # Approve
-                # ✅ Database Update Logic
-                result = col.update_one(
-                    {"_id": uid},
-                    {"$inc": {"credits": credits}},
-                    upsert=True
-                )
+                # ✅ Database Update
+                col.update_one({"_id": uid}, {"$inc": {"credits": credits}}, upsert=True)
                 
-                if result.modified_count > 0 or result.upserted_id:
-                    bot.send_message(uid, f"✅ <b>ᴘᴀʏᴍᴇɴᴛ ᴀᴘᴘʀᴏᴠᴇᴅ!</b>\n{credits} ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ.", parse_mode="HTML")
-                    bot.edit_message_caption(
-                        f"✅ Approved {credits} Cr for {uid}\nAdmin: {call.from_user.first_name}", 
-                        call.message.chat.id, call.message.message_id
-                    )
-                else:
-                    bot.answer_callback_query(call.id, "⚠️ DB update failed!", show_alert=True)
-                    
+                # User ko notification
+                try: bot.send_message(uid, f"✅ <b>ᴘᴀʏᴍᴇɴᴛ ᴀᴘᴘʀᴏᴠᴇᴅ!</b>\n{credits} ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ.", parse_mode="HTML")
+                except: pass
+
+                # 🛑 CRITICAL: Buttons hatao aur status update karo
+                bot.edit_message_caption(
+                    caption=f"✅ Approved {credits} Cr for {uid}\nAdmin: {call.from_user.first_name}",
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    reply_markup=None  # <--- ISSE BUTTONS GAYAB HONGE
+                )
+                bot.answer_callback_query(call.id, "✅ Done!")
+
             elif action == "rej": # Reject
-                try:
-                    bot.send_message(uid, "❌ <b>ᴘᴀʏᴍᴇɴᴛ ʀᴇᴊᴇᴄᴛᴇᴅ!</b>", parse_mode="HTML")
-                except:
-                    pass
-                bot.edit_message_caption(f"❌ Rejected for {uid}", call.message.chat.id, call.message.message_id)
+                try: bot.send_message(uid, "❌ <b>ᴘᴀʏᴍᴇɴᴛ ʀᴇᴊᴇᴄᴛᴇᴅ!</b>", parse_mode="HTML")
+                except: pass
+
+                # 🛑 Buttons hatao aur status update karo
+                bot.edit_message_caption(
+                    caption=f"❌ Rejected for {uid}\nAdmin: {call.from_user.first_name}",
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    reply_markup=None  # <--- ISSE BUTTONS GAYAB HONGE
+                )
+                bot.answer_callback_query(call.id, "❌ Rejected")
 
         except Exception as e:
-            bot.answer_callback_query(call.id, f"❌ Error: {e}", show_alert=True)
             print(f"Approval Error: {e}")
-            pass # Agar user ne bot block kar diya ho
-                
-            bot.edit_message_caption(f"❌ Rejected for {uid}", call.message.chat.id, call.message.message_id)
+            bot.answer_callback_query(call.id, f"❌ Error: {e}", show_alert=True)
