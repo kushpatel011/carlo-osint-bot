@@ -121,7 +121,7 @@ def setup_payment_handlers(bot, ADMIN_IDS):
         else:
             bot.send_message(call.message.chat.id, instr, parse_mode="HTML")
 
-    # --- ADMIN: APPROVAL LOGIC (SECURED) ---
+        # --- ADMIN: APPROVAL LOGIC (SECURED) ---
     @bot.callback_query_handler(func=lambda call: call.data.startswith("p_"))
     def admin_approval(call):
         # 🛡️ SECURITY: Only allow admins to use these buttons
@@ -134,17 +134,27 @@ def setup_payment_handlers(bot, ADMIN_IDS):
         credits = int(data_parts[3])
         
         if action == "app": # Approve
-            USERS_COL.update_one(
-                {"_id": uid},
-                {"$inc": {"credits": credits}},
-                upsert=True
-            )
-            bot.send_message(uid, f"✅ <b>ᴘᴀʏᴍᴇɴᴛ ᴀᴘᴘʀᴏᴠᴇᴅ!</b>\n{credits} ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ.", parse_mode="HTML")
-            bot.edit_message_caption(
-                f"✅ Approved {credits} Cr for {uid}\nAdmin: {call.from_user.first_name}", 
-                call.message.chat.id, call.message.message_id
-            )
-        else: # Reject
-            bot.send_message(uid, "❌ <b>ᴘᴀʏᴍᴇɴᴛ ʀᴇᴊᴇᴄᴛᴇᴅ!</b>", parse_mode="HTML")
-            bot.edit_message_caption(f"❌ Rejected for {uid}", call.message.chat.id, call.message.message_id)
+            try:
+                # 🛠️ BUG FIXED HERE: Added db_mongo[]
+                db_mongo[USERS_COL].update_one(
+                    {"_id": uid},
+                    {"$inc": {"credits": credits}},
+                    upsert=True
+                )
                 
+                bot.send_message(uid, f"✅ <b>ᴘᴀʏᴍᴇɴᴛ ᴀᴘᴘʀᴏᴠᴇᴅ!</b>\n{credits} ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ.", parse_mode="HTML")
+                bot.edit_message_caption(
+                    f"✅ Approved {credits} Cr for {uid}\nAdmin: {call.from_user.first_name}", 
+                    call.message.chat.id, call.message.message_id
+                )
+            except Exception as e:
+                # Agar database error aati hai toh admin ko bata dega
+                bot.answer_callback_query(call.id, f"❌ DB Error: {e}", show_alert=True)
+                
+        else: # Reject
+            try:
+                bot.send_message(uid, "❌ <b>ᴘᴀʏᴍᴇɴᴛ ʀᴇᴊᴇᴄᴛᴇᴅ!</b>", parse_mode="HTML")
+            except Exception:
+                pass # Agar user ne bot block kar diya ho
+                
+            bot.edit_message_caption(f"❌ Rejected for {uid}", call.message.chat.id, call.message.message_id)
