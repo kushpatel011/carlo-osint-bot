@@ -37,10 +37,26 @@ def setup_tg2num_handlers(bot, db_mongo, USERS_COL, get_user, user_states, api_k
                 "<b>🛡️ Privacy Protection!</b>\n\nThis User ID is <b>Hidden by Owner</b>. Records cannot be retrieved.", 
                 parse_mode="HTML"
         )    
-        # Credit Check
+        # 2. 💳 CREDIT CHECK (Indented inside process_tg_lookup)
         if u['credits'] <= 0 and not u['is_vip']:
-            return bot.reply_to(message, "⚠️ <b>Insufficient Credits!</b>", parse_mode="HTML")
+            markup = types.InlineKeyboardMarkup()
+            btn_buy = types.InlineKeyboardButton("💳 ʙᴜʏ ᴄʀᴇᴅɪᴛs", callback_data="buy_credits")
+            btn_refer = types.InlineKeyboardButton("👥 ʀᴇғᴇʀ & ᴇᴀʀɴ", callback_data="refer_info")
+            btn_join = types.InlineKeyboardButton("📢 ᴊᴏɪɴ ᴄʜᴀɴɴᴇʟ", url=channel_link)
+            markup.row(btn_buy, btn_refer)
+            markup.add(btn_join)
 
+            insufficient_msg = (
+                "<b>⚠️ ɪɴsᴜғғɪᴄɪᴇɴᴛ ʙᴀʟᴀɴᴄᴇ!</b>\n"
+                "━━━━━━━━━━━━━━━━━━━━\n"
+                "ʏᴏᴜʀ ᴀᴄᴄᴏᴜɴᴛ ʜᴀs <b>0 ᴄʀᴇᴅɪᴛs</b> ʀᴇᴍᴀɪɴɪɴɢ.\n\n"
+                "<b>ʜᴏᴡ ᴛᴏ ɢᴇᴛ ᴍᴏʀᴇ?</b>\n"
+                "1️⃣ <b>ʀᴇғᴇʀ:</b> ɪɴᴠɪᴛᴇ ғʀɪᴇɴᴅs ᴛᴏ ᴇᴀʀɴ ᴄʀᴇᴅɪᴛs.\n"
+                "2️⃣ <b>ᴘᴜʀᴄʜᴀsᴇ:</b> ʙᴜʏ ɪɴsᴛᴀɴᴛ ᴄʀᴇᴅɪᴛs ᴠɪᴀ ᴜᴘɪ.\n"
+                "━━━━━━━━━━━━━━━━━━━━\n"
+                f"📡 <b>ᴏғғɪᴄɪᴀʟ:</b> <a href='{channel_link}'>Carlo Dark World</a>"
+            )
+            return bot.send_message(message.chat.id, insufficient_msg, parse_mode="HTML", disable_web_page_preview=True, reply_markup=markup)
         wait = bot.send_message(message.chat.id, "🛰️ <b>Scanning Telegram Database...</b>", parse_mode="HTML")
 
         try:
@@ -68,7 +84,7 @@ def setup_tg2num_handlers(bot, db_mongo, USERS_COL, get_user, user_states, api_k
                     f"📱 <b>ɴᴜᴍʙᴇʀ:</b> <code>{c_code}{phone}</code>\n"
                     f"📍 <b>ᴄᴏᴜɴᴛʀʏ:</b> <code>{country}</code>\n"
                     "━━━━━━━━━━━━━━━━━━━━\n"
-                    f"✨ <b>Powered by: <a href='{channel_link}'>Carlo Dark World</a></b>"
+                    f"✨ <b>Made by: @DetorLab </a></b>"
                 )
                 bot.edit_message_text(output, message.chat.id, wait.message_id, parse_mode="HTML", disable_web_page_preview=True)
             else:
