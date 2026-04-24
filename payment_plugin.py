@@ -121,7 +121,55 @@ def setup_payment_handlers(bot, ADMIN_IDS):
         else:
             bot.send_message(call.message.chat.id, instr, parse_mode="HTML")
 
-        # --- ADMIN: APPROVAL LOGIC (SECURED) ---
+        # --- USER: SCREENSHOT RECEIVER (NOTIFIES ALL ADMINS) ---
+    @bot.message_handler(content_types=['photo'])
+    def handle_screenshot(message):
+        from __main__ import user_states
+        uid = message.from_user.id
+        
+        # Check if user is in "awaiting screenshot" state
+        if uid in user_states and user_states[uid].startswith("sending_ss|"):
+            try:
+                credits = user_states[uid].split("|")[1]
+                u_name = message.from_user.first_name
+                
+                # Admin ke liye approval buttons
+                markup = types.InlineKeyboardMarkup()
+                markup.add(
+                    types.InlineKeyboardButton("✅ APPROVE", callback_data=f"p_app_{uid}_{credits}"),
+                    types.InlineKeyboardButton("❌ REJECT", callback_data=f"p_rej_{uid}_{credits}")
+                )
+                
+                caption = (
+                    f"💰 <b>ɴᴇᴡ ᴘᴀʏᴍᴇɴᴛ ʀᴇǫᴜᴇsᴛ</b>\n"
+                    f"━━━━━━━━━━━━━━━━━━━━\n"
+                    f"👤 ᴜsᴇʀ: {u_name} (<code>{uid}</code>)\n"
+                    f"🎫 ᴘʟᴀɴ: {credits} ᴄʀᴇᴅɪᴛs\n"
+                    f"━━━━━━━━━━━━━━━━━━━━"
+                )
+
+                # 🚀 Loop through all admins to send notification
+                for admin_id in ADMIN_IDS:
+                    try:
+                        bot.send_photo(
+                            admin_id, 
+                            message.photo[-1].file_id, 
+                            caption=caption, 
+                            reply_markup=markup, 
+                            parse_mode="HTML"
+                        )
+                    except Exception as e:
+                        print(f"Failed to notify admin {admin_id}: {e}")
+
+                bot.reply_to(message, "✅ <b>Proof received!</b> Admin will verify and approve soon.", parse_mode="HTML")
+                
+                # State clear karein taaki har photo admin ko na jaye
+                del user_states[uid]
+
+            except Exception as e:
+                bot.reply_to(message, f"❌ Error: {e}")
+                
+    # --- ADMIN: APPROVAL LOGIC (SECURED) ---
     @bot.callback_query_handler(func=lambda call: call.data.startswith("p_"))
     def admin_approval(call):
         # 🛡️ SECURITY: Only allow admins to use these buttons
