@@ -135,8 +135,8 @@ def setup_payment_handlers(bot, ADMIN_IDS):
         
         if action == "app": # Approve
             try:
-                # 🛠️ BUG FIXED HERE: Added db_mongo[]
-                db_mongo[USERS_COL].update_one(
+                # FIX: db_mongo[] hata diya kyunki USERS_COL pehle se hi collection hai
+                USERS_COL.update_one(
                     {"_id": uid},
                     {"$inc": {"credits": credits}},
                     upsert=True
@@ -148,7 +148,6 @@ def setup_payment_handlers(bot, ADMIN_IDS):
                     call.message.chat.id, call.message.message_id
                 )
             except Exception as e:
-                # Agar database error aati hai toh admin ko bata dega
                 bot.answer_callback_query(call.id, f"❌ DB Error: {e}", show_alert=True)
                 
         else: # Reject
