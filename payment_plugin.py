@@ -169,39 +169,53 @@ def setup_payment_handlers(bot, ADMIN_IDS):
             except Exception as e:
                 bot.reply_to(message, f"❌ Error: {e}")
                 
-    # --- ADMIN: APPROVAL LOGIC (SECURED) ---
+        # --- ADMIN: APPROVAL LOGIC (SECURED) ---
     @bot.callback_query_handler(func=lambda call: call.data.startswith("p_"))
     def admin_approval(call):
         # 🛡️ SECURITY: Only allow admins to use these buttons
         if call.from_user.id not in ADMIN_IDS:
             return bot.answer_callback_query(call.id, "❌ Not authorized!", show_alert=True)
 
-        data_parts = call.data.split("_")
-        action = data_parts[1]
-        uid = int(data_parts[2]) # Ensure UID is int
-        credits = int(data_parts[3])
-        
-        if action == "app": # Approve
-            try:
-                # FIX: db_mongo[] hata diya kyunki USERS_COL pehle se hi collection hai
-                USERS_COL.update_one(
+        try:
+            data_parts = call.data.split("_")
+            action = data_parts[1]
+            
+            # 🛑 CRITICAL FIX: UID ko string me convert kiya (aapke DB format ke liye)
+            uid = str(data_parts[2]) 
+            credits = int(data_parts[3])
+            
+            # Direct collection variable use karein (USERS_COL variable ko call karein)
+            # Agar USERS_COL sirf "users" string hai, to db_mongo[USERS_COL] likhein
+            col = db_mongo[USERS_COL] if isinstance(USERS_COL, str) else USERS_COL
+
+            if action == "app": # Approve
+                # ✅ Database Update Logic
+                result = col.update_one(
                     {"_id": uid},
                     {"$inc": {"credits": credits}},
                     upsert=True
                 )
                 
-                bot.send_message(uid, f"✅ <b>ᴘᴀʏᴍᴇɴᴛ ᴀᴘᴘʀᴏᴠᴇᴅ!</b>\n{credits} ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ.", parse_mode="HTML")
-                bot.edit_message_caption(
-                    f"✅ Approved {credits} Cr for {uid}\nAdmin: {call.from_user.first_name}", 
-                    call.message.chat.id, call.message.message_id
-                )
-            except Exception as e:
-                bot.answer_callback_query(call.id, f"❌ DB Error: {e}", show_alert=True)
-                
-        else: # Reject
-            try:
-                bot.send_message(uid, "❌ <b>ᴘᴀʏᴍᴇɴᴛ ʀᴇᴊᴇᴄᴛᴇᴅ!</b>", parse_mode="HTML")
-            except Exception:
+                if result.modified_count > 0 or result.upserted_id:
+                    bot.send_message(uid, f"✅ <b>ᴘᴀʏᴍᴇɴᴛ ᴀᴘᴘʀᴏᴠᴇᴅ!</b>\n{credits} ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ.", parse_mode="HTML")
+                    bot.edit_message_caption(
+                        f"✅ Approved {credits} Cr for {uid}\nAdmin: {call.from_user.first_name}", 
+                        call.message.chat.id, call.message.message_id
+                    )
+                else:
+                    bot.answer_callback_query(call.id, "⚠️ DB update failed!", show_alert=True)
+                    
+            elif action == "rej": # Reject
+                try:
+                    bot.send_message(uid, "❌ <b>ᴘᴀʏᴍᴇɴᴛ ʀᴇᴊᴇᴄᴛᴇᴅ!</b>", parse_mode="HTML")
+                except:
+                    pass
+                bot.edit_message_caption(f"❌ Rejected for {uid}", call.message.chat.id, call.message.message_id)
+
+        except Exception as e:
+            bot.answer_callback_query(call.id, f"❌ Error: {e}", show_alert=True)
+            print(f"Approval Error: {e}")
+
                 pass # Agar user ne bot block kar diya ho
                 
             bot.edit_message_caption(f"❌ Rejected for {uid}", call.message.chat.id, call.message.message_id)
