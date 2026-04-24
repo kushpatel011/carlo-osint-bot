@@ -84,7 +84,7 @@ def setup_tg2num_handlers(bot, db_mongo, USERS_COL, get_user, user_states, api_k
                     f"📱 <b>ɴᴜᴍʙᴇʀ:</b> <code>{c_code}{phone}</code>\n"
                     f"📍 <b>ᴄᴏᴜɴᴛʀʏ:</b> <code>{country}</code>\n"
                     "━━━━━━━━━━━━━━━━━━━━\n"
-                    f"✨ <b>Made by: @DetorLab </a></b>"
+                    f"✨ <b>Made by: @DetorLab </b>"
                 )
                 bot.edit_message_text(output, message.chat.id, wait.message_id, parse_mode="HTML", disable_web_page_preview=True)
             else:
