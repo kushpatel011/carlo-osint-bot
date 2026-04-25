@@ -109,68 +109,68 @@ def register_admin_handlers(bot, ADMIN_IDS, db_mongo, USERS_COL, COUPONS_COL, SE
         bot.reply_to(message, f"❌ Error: {e}")
            
     # --- COMMAND: CREDIT ALL USERS ---
-@bot.message_handler(commands=['credit_all'], func=lambda m: m.from_user.id in ADMIN_IDS)
-def credit_all_users(message):
-    try:
-        args = message.text.split()
-        if len(args) < 2 or not args[1].isdigit():
-            return bot.reply_to(message, "⚠️ ᴜsᴀɢᴇ: <code>/credit_all 50</code>", parse_mode="HTML")
+    @bot.message_handler(commands=['credit_all'], func=lambda m: m.from_user.id in ADMIN_IDS)
+    def credit_all_users(message):
+        try:
+            args = message.text.split()
+            if len(args) < 2 or not args[1].isdigit():
+                return bot.reply_to(message, "⚠️ ᴜsᴀɢᴇ: <code>/credit_all 50</code>", parse_mode="HTML")
     
-        amount = int(args[1])
+            amount = int(args[1])
     
         # 1. Pehle sabhi ko instantly credit de do DB me
-        result = db_mongo[USERS_COL].update_many({}, {"$inc": {"credits": amount}})
+            result = db_mongo[USERS_COL].update_many({}, {"$inc": {"credits": amount}})
     
         # 2. Admin ko wait karne ka message
-        status_msg = bot.reply_to(message, f"⏳ <b>ᴜᴘᴅᴀᴛᴇᴅ {result.modified_count} ᴜsᴇʀs.</b>\nBroadcasting notification messages... please wait.", parse_mode="HTML")
+            status_msg = bot.reply_to(message, f"⏳ <b>ᴜᴘᴅᴀᴛᴇᴅ {result.modified_count} ᴜsᴇʀs.</b>\nBroadcasting notification messages... please wait.", parse_mode="HTML")
     
         # 3. Sabhi users ki list nikalna (List mein convert kiya taaki cursor timeout na ho)
-        all_users = list(db_mongo[USERS_COL].find({}, {"_id": 1}))
+            all_users = list(db_mongo[USERS_COL].find({}, {"_id": 1}))
     
-        sent_count = 0
-        failed_count = 0
+            sent_count = 0
+            failed_count = 0
     
-        for index, user in enumerate(all_users):
-            uid = user.get("_id")
+            for index, user in enumerate(all_users):
+                uid = user.get("_id")
         
-            try:
+                try:
                 # User ko message
-                notify_text = (
-                    "🎉 <b>ʙᴏɴᴜs ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ!</b>\n"
-                    "━━━━━━━━━━━━━━━━━━━━\n"
-                    f"Aᴅᴍɪɴ ʜᴀs ɢɪғᴛᴇᴅ ʏᴏᴜ <b>{amount} ᴄʀᴇᴅɪᴛs</b>.\n"
-                    "Eɴᴊᴏʏ ᴜsɪɴɢ ᴏᴜʀ sᴇʀᴠɪᴄᴇs!"
-                )
+                    notify_text = (
+                        "🎉 <b>ʙᴏɴᴜs ᴄʀᴇᴅɪᴛs ᴀᴅᴅᴇᴅ!</b>\n"
+                        "━━━━━━━━━━━━━━━━━━━━\n"
+                        f"Aᴅᴍɪɴ ʜᴀs ɢɪғᴛᴇᴅ ʏᴏᴜ <b>{amount} ᴄʀᴇᴅɪᴛs</b>.\n"
+                        "Eɴᴊᴏʏ ᴜsɪɴɢ ᴏᴜʀ sᴇʀᴠɪᴄᴇs!"
+                    )
                 
                 # Timeout limit badhai gayi hai taaki slow response par crash na ho
-                bot.send_message(uid, notify_text, parse_mode="HTML", timeout=60)
-                sent_count += 1
+                    bot.send_message(uid, notify_text, parse_mode="HTML", timeout=60)
+                    sent_count += 1
                 
-            except (ReadTimeout, ConnectionError):
+                except (ReadTimeout, ConnectionError):
                 # Network ya timeout issue aane par thoda wait karega
-                time.sleep(1)
-                failed_count += 1
-            except Exception:
+                    time.sleep(1)
+                    failed_count += 1
+                except Exception:
                 # Agar user ne bot ko block kiya hai ya account delete ho gaya hai
-                failed_count += 1
+                    failed_count += 1
         
             # --- 🛡️ FLOOD WAIT LOGIC ---
             # Telegram limits ke mutabiq har 20 msgs pe thoda sleep
-            if (index + 1) % 20 == 0:
-                time.sleep(1.5)
+                if (index + 1) % 20 == 0:
+                    time.sleep(1.5)
     
         # 4. Final Report to Admin
-        final_report = (
-            "✅ <b>ʙʀᴏᴀᴅᴄᴀsᴛ ᴄᴏᴍᴘʟᴇᴛᴇ!</b>\n"
-            "━━━━━━━━━━━━━━━━━━━━\n"
-            f"💰 <b>Aᴍᴏᴜɴᴛ Aᴅᴅᴇᴅ:</b> <code>{amount}</code>\n"
-            f"📨 <b>Mᴇssᴀɢᴇs Sᴇɴᴛ:</b> <code>{sent_count}</code>\n"
-            f"🚫 <b>Fᴀɪʟᴇᴅ/Bʟᴏᴄᴋᴇᴅ:</b> <code>{failed_count}</code>"
-        )
-        bot.edit_message_text(final_report, message.chat.id, status_msg.message_id, parse_mode="HTML")
+            final_report = (
+                "✅ <b>ʙʀᴏᴀᴅᴄᴀsᴛ ᴄᴏᴍᴘʟᴇᴛᴇ!</b>\n"
+                "━━━━━━━━━━━━━━━━━━━━\n"
+                f"💰 <b>Aᴍᴏᴜɴᴛ Aᴅᴅᴇᴅ:</b> <code>{amount}</code>\n"
+                f"📨 <b>Mᴇssᴀɢᴇs Sᴇɴᴛ:</b> <code>{sent_count}</code>\n"
+                f"🚫 <b>Fᴀɪʟᴇᴅ/Bʟᴏᴄᴋᴇᴅ:</b> <code>{failed_count}</code>"
+            )
+            bot.edit_message_text(final_report, message.chat.id, status_msg.message_id, parse_mode="HTML")
     
-    except Exception as e:
-        bot.reply_to(message, f"❌ Error: {e}")
+        except Exception as e:
+            bot.reply_to(message, f"❌ Error: {e}")
         # --- COMMAND: DEDUCT ALL USERS ---
     @bot.message_handler(commands=['deduct_all'], func=lambda m: m.from_user.id in ADMIN_IDS)
     def deduct_all_users(message):
